@@ -22,7 +22,7 @@ if (!dateFns.isMonday(weekStart)) {
   weekStart = dateFns.startOfDay(dateFns.previousMonday(weekStart));
 }
 
-const weekEnd = dateFns.addDays(weekStart, 7);
+const weekEnd = dateFns.addDays(weekStart, 5);
 
 // Construct an Asana client
 var client = asana.Client.create().useAccessToken(process.env.ASANA_PAT);
@@ -73,9 +73,11 @@ function wait(time) {
       process.exit(1);
     }
 
+    const plan = weekPlans.data[0];
+
     // for (const plan of weekPlans.data) {
     //   const planDate = new Date(plan.created_at);
-    //   const startOfWeek = dateFns.isMonday(planDate)
+    //   const weekStart = dateFns.isMonday(planDate)
     //     ? planDate
     //     : dateFns.previousMonday(planDate);
 
@@ -84,7 +86,7 @@ function wait(time) {
     const comments = stories.data.filter((s) => s.type === "comment");
 
     for (let days = 0; days < 5; days++) {
-      const dayOfWeek = dateFns.addDays(startOfWeek, days);
+      const dayOfWeek = dateFns.addDays(weekStart, days);
       const dailyTasks = await client.tasks.searchTasksForWorkspace(
         process.env.NRWL_WORKSPACE_ID,
         {
@@ -129,6 +131,8 @@ function wait(time) {
   } catch (e) {
     if (e.value) {
       console.log(JSON.stringify(e.value.errors));
+    } else {
+      console.log(e);
     }
   }
 })();
