@@ -18,7 +18,7 @@ if (isNaN(weekStart.getTime())) {
   process.exit(1);
 }
 
-if (!dateFns.isMonday(weekStart)) {
+if (!dateFns.isMonday(weekStart) && !dateFns.isSunday(weekStart)) {
   weekStart = dateFns.startOfDay(dateFns.previousMonday(weekStart));
 }
 
