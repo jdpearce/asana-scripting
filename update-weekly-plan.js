@@ -12,6 +12,10 @@ if (!process.env.ASANA_WEEK_START) {
   process.exit(1);
 }
 
+if (!process.env.ASANA_WORKSPACE_ID) {
+  console.error("Must provide the workspace ID");
+}
+
 let weekStart = new Date(process.env.ASANA_WEEK_START);
 if (isNaN(weekStart.getTime())) {
   console.error("Must provide a valid ASANA_WEEK_START (yyyy-MM-dd).");
@@ -24,7 +28,6 @@ if (!dateFns.isMonday(weekStart) && !dateFns.isSunday(weekStart)) {
 
 const weekEnd = dateFns.addDays(weekStart, 5);
 
-// Construct an Asana client
 var client = asana.Client.create().useAccessToken(process.env.ASANA_PAT);
 
 /**
@@ -55,7 +58,7 @@ function wait(time) {
     const me = await client.users.me();
 
     const weekPlans = await client.tasks.searchTasksForWorkspace(
-      process.env.NRWL_WORKSPACE_ID,
+      process.env.ASANA_WORKSPACE_ID,
       {
         resource_subtype: "default_task",
         text: "This week's plan submission",
@@ -74,21 +77,13 @@ function wait(time) {
     }
 
     const plan = weekPlans.data[0];
-
-    // for (const plan of weekPlans.data) {
-    //   const planDate = new Date(plan.created_at);
-    //   const weekStart = dateFns.isMonday(planDate)
-    //     ? planDate
-    //     : dateFns.previousMonday(planDate);
-
-    // Get all current stories on the plan
     const stories = await client.stories.findByTask(plan.gid);
     const comments = stories.data.filter((s) => s.type === "comment");
 
     for (let days = 0; days < 5; days++) {
       const dayOfWeek = dateFns.addDays(weekStart, days);
       const dailyTasks = await client.tasks.searchTasksForWorkspace(
-        process.env.NRWL_WORKSPACE_ID,
+        process.env.ASANA_WORKSPACE_ID,
         {
           resource_subtype: "default_task",
           "assignee.any": me.gid,
@@ -126,7 +121,6 @@ function wait(time) {
 
       // wait briefly so we don't get the comments in a weird order.
       await wait(2000);
-      // }
     }
   } catch (e) {
     if (e.value) {
